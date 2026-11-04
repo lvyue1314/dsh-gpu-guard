@@ -1,0 +1,4 @@
+# dsh-gpu-guard bundle patch: one host plugin row.
+- insert:
+    - id: dsh-gpu-guard
+      name: dsh-gpu-guard

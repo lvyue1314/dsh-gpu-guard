@@ -1,0 +1,74 @@
+{
+  "name": "dsh-gpu-guard",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness plugin that finds GPU compute processes whose owning agent/terminal is already dead, and kills those trees — dry-run by default, watchdog optional.",
+  "type": "module",
+  "main": "./lib/index.js",
+  "bin": {
+    "gpu-guard": "./bin/gpu-guard.mjs"
+  },
+  "exports": {
+    ".": "./lib/index.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "bin",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE",
+    "examples"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "gpu",
+    "nvidia",
+    "orphan-process",
+    "windows",
+    "watchdog",
+    "cuda"
+  ],
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "dshhub": {
+    "schemaVersion": 1,
+    "displayName": "GPU Guard GPU 占用看门狗",
+    "summary": "停止的 agent 留下的 GPU 进程树会一直吃显存；这个插件按祖先链识别孤儿树并结束它，可选后台看门狗。",
+    "categories": [
+      "系统"
+    ],
+    "surfaces": [
+      "host"
+    ],
+    "compatibility": {
+      "dsh": ">=0.2.1-rc.5",
+      "node": ">=22"
+    },
+    "permissions": {}
+  },
+  "author": {
+    "name": "lvyue1314",
+    "url": "https://github.com/lvyue1314"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lvyue1314/dsh-gpu-guard.git"
+  },
+  "homepage": "https://github.com/lvyue1314/dsh-gpu-guard#readme",
+  "bugs": {
+    "url": "https://github.com/lvyue1314/dsh-gpu-guard/issues"
+  },
+  "scripts": {
+    "start": "node bin/gpu-guard.mjs status"
+  }
+}
