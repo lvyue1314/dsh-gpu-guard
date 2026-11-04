@@ -123,10 +123,34 @@ profile 若配置了 `patchReload: live`，下一次模型调用就能看到三�
 日志追加到 `~/.dsh/gpu-guard.log`（环境变量 `DSH_GPU_GUARD_LOG`）。
 插件状态也可以直接看：`GET http://127.0.0.1:<port>/dsh-gpu-guard/state`。
 
+### 杀完之后还剩 0.1 GB，是不是残骸？
+
+进程被结束，它的 CUDA/图形上下文随之销毁，显存**立刻**归还——内核里不存在"进程没了但显存还挂着"的常规情况。
+剩下的几十 MB 通常来自别的常驻程序，本工具会把每一份都标出来：
+
+| 类 | 含义 |
+| --- | --- |
+| `C` | 计算上下文（nvidia-smi 的 compute 列表） |
+| `G` | 只有图形上下文（浏览器/聊天软件的硬件加速、桌面合成） |
+| `C+G` | 两者都有 |
+
+把同一时刻的性能计数器加总，能与 `nvidia-smi` 报的总占用对上，就说明没有看不见的残骸。真实案例（一台 MX450 机器，
+训练进程全部结束后）：
+
+```text
+GPU 0: 54/2048 MiB, 利用率 0%
+46728  QQ.exe   53.6 MiB  C  正常（父进程存活）      <- 聊天软件的 GPU 进程
+2700   HipsDaemon.exe  N/A  C  正常（父进程存活）   <- 杀毒软件
+```
+
+53.6 + 1.9（System）= 55.5 MiB，和 54 MiB 对得上：没有残骸，是 QQ 的硬件加速。关掉它的硬件加速
+（或退出 QQ）就归零。
+
 ### 已知限制
 
-- **WDDM 下每进程显存是 N/A**。`nvidia-smi` 在 WDDM 驱动上不给 per-process 显存，报告里显示 `N/A`；
-  PID、卡片显存总量、利用率、温度都是准的。要精确数字需要 TCC 模式或 NVML 逐句柄查询，对"找出谁在偷 GPU"没有影响。
+- **WDDM 下 `nvidia-smi` 的 per-process 显存是 `N/A`**，而且它只列 *计算* 上下文。所以每进程显存改从 Windows
+  性能计数器读（`\GPU Process Memory(*)\Dedicated Usage`），图形上下文也一并算上；极少数服务器 SKU 没有这组计数器时，
+  报告会给出警告并退回 `N/A`。
 - **只看 GPU 计算上下文**。不碰 GPU 的孤儿进程不在处理范围（那是另一类问题）。
 - **PID 复用**已经用启动时间校验挡掉；极端情况下（同一秒内 PID 被复用）仍有窗口，`killTree` 会在杀之前再读一次进程表确认。
 - **不管"后台 job"**：如果进程是 DSH 的 background job（`run_in_background: true`），它本来就该活过 subagent——

@@ -1,6 +1,6 @@
 {
   "name": "dsh-gpu-guard",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "DeepSeek Harness plugin that finds GPU compute processes whose owning agent/terminal is already dead, and kills those trees — dry-run by default, watchdog optional.",
   "type": "module",
   "main": "./lib/index.js",
